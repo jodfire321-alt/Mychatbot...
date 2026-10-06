@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Adarsh AI - Groq Chatbot</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:Arial,sans-serif;
+  background:#080b14;
+  color:#fff;
+  height:100vh;
+  overflow:hidden;
+}
+
+.app{
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  background:#0d1220;
+}
+
+/* HEADER */
+header{
+  height:68px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  border-bottom:1px solid #20283a;
+  background:#101625;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#4776ff,#8c52ff);
+  font-size:21px;
+  font-weight:bold;
+}
+
+.brand h1{
+  font-size:18px;
+}
+
+.brand small{
+  display:block;
+  color:#7e8aa4;
+  font-size:11px;
+  margin-top:3px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+}
+
+.action{
+  width:40px;
+  height:40px;
+  border:1px solid #293349;
+  background:#161e30;
+  color:#fff;
+  border-radius:11px;
+  cursor:pointer;
+  font-size:18px;
+}
+
+.action:hover{
+  background:#202b43;
+}
+
+/* CHAT */
+#chat{
+  flex:1;
+  overflow-y:auto;
+  padding:25px 16px 130px;
+  scroll-behavior:smooth;
+}
+
+#chat::-webkit-scrollbar{
+  width:6px;
+}
+
+#chat::-webkit-scrollbar-thumb{
+  background:#303b52;
+  border-radius:20px;
+}
+
+.welcome{
+  max-width:650px;
+  margin:70px auto;
+  text-align:center;
+}
+
+.welcome-logo{
+  width:75px;
+  height:75px;
+  margin:auto auto 20px;
+  border-radius:24px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:36px;
+  background:linear-gradient(135deg,#4776ff,#8c52ff);
+}
+
+.welcome h2{
+  font-size:30px;
+  margin-bottom:10px;
+}
+
+.welcome p{
+  color:#8792a9;
+  line-height:1.6;
+}
+
+.suggestions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:9px;
+  margin-top:25px;
+}
+
+.suggestion{
+  padding:10px 13px;
+  border:1px solid #293349;
+  border-radius:12px;
+  background:#121a2a;
+  color:#cbd3e2;
+  cursor:pointer;
+}
+
+.suggestion:hover{
+  border-color:#587bff;
+}
+
+/* MESSAGES */
+.message{
+  max-width:850px;
+  margin:0 auto 18px;
+  display:flex;
+  gap:10px;
+  animation:show .2s ease;
+}
+
+.message.user{
+  flex-direction:row-reverse;
+}
+
+@keyframes show{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.avatar{
+  width:36px;
+  height:36px;
+  min-width:36px;
+  border-radius:11px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#1c2639;
+}
+
+.user .avatar{
+  background:linear-gradient(135deg,#4776ff,#7954e8);
+}
+
+.bubble{
+  max-width:calc(100% - 46px);
+  padding:12px 15px;
+  border-radius:16px;
+  background:#151d2e;
+  color:#e7ecf5;
+  line-height:1.6;
+  font-size:14px;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+
+.user .bubble{
+  background:linear-gradient(135deg,#3866df,#6248bf);
+  border-top-right-radius:5px;
+}
+
+.ai .bubble{
+  border-top-left-radius:5px;
+}
+
+/* TYPING */
+.typing{
+  display:flex;
+  gap:5px;
+}
+
+.dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#8795af;
+  animation:bounce .9s infinite;
+}
+
+.dot:nth-child(2){animation-delay:.15s}
+.dot:nth-child(3){animation-delay:.3s}
+
+@keyframes bounce{
+  0%,60%,100%{transform:translateY(0)}
+  30%{transform:translateY(-5px)}
+}
+
+/* INPUT */
+.input-area{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  padding:12px 15px 16px;
+  background:linear-gradient(transparent,#0d1220 22%);
+}
+
+.input-wrap{
+  max-width:850px;
+  margin:auto;
+  display:flex;
+  gap:8px;
+  align-items:flex-end;
+  padding:8px;
+  border:1px solid #303b53;
+  border-radius:17px;
+  background:#111a2a;
+}
+
+textarea{
+  flex:1;
+  border:0;
+  outline:0;
+  resize:none;
+  max-height:130px;
+  min-height:42px;
+  padding:10px;
+  background:transparent;
+  color:#fff;
+  font-size:14px;
+  line-height:1.5;
+}
+
+textarea::placeholder{
+  color:#657189;
+}
+
+.send{
+  width:45px;
+  height:45px;
+  border:0;
+  border-radius:13px;
+  background:linear-gradient(135deg,#4776ff,#8054e8);
+  color:#fff;
+  font-size:19px;
+  cursor:pointer;
+}
+
+.send:disabled{
+  opacity:.5;
+}
+
+.disclaimer{
+  max-width:850px;
+  margin:7px auto 0;
+  text-align:center;
+  color:#566179;
+  font-size:10px;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(0,0,0,.7);
+  z-index:20;
+}
+
+.modal.active{
+  display:flex;
+}
+
+.modal-box{
+  width:100%;
+  max-width:440px;
+  padding:23px;
+  border:1px solid #303b53;
+  border-radius:20px;
+  background:#111827;
+}
+
+.modal-box h2{
+  margin-bottom:9px;
+}
+
+.modal-box p{
+  color:#8b96ab;
+  font-size:13px;
+  line-height:1.5;
+  margin-bottom:17px;
+}
+
+.field{
+  width:100%;
+  padding:13px;
+  margin-bottom:11px;
+  border:1px solid #303b53;
+  border-radius:11px;
+  outline:0;
+  background:#0a101d;
+  color:#fff;
+}
+
+.modal-buttons{
+  display:flex;
+  gap:8px;
+}
+
+.modal-buttons button{
+  flex:1;
+  padding:12px;
+  border:1px solid #303b53;
+  border-radius:11px;
+  background:#182237;
+  color:#fff;
+  cursor:pointer;
+}
+
+.modal-buttons .save{
+  border:0;
+  background:linear-gradient(135deg,#4776ff,#8054e8);
+}
+
+.status{
+  color:#7f8ba3;
+  font-size:12px;
+  margin-top:12px;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  header{height:62px}
+  #chat{padding:20px 10px 130px}
+  .welcome{margin:55px auto}
+  .welcome h2{font-size:25px}
+  .welcome-logo{width:65px;height:65px;font-size:31px}
+  .message{max-width:100%}
+  .bubble{font-size:14px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="brand">
+    <div class="logo">✦</div>
+    <div>
+      <h1>Adarsh AI</h1>
+      <small>Powered by Groq</small>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="action" onclick="newChat()" title="New chat">＋</button>
+    <button class="action" onclick="openSettings()" title="Settings">⚙</button>
+  </div>
+</header>
+
+<main id="chat">
+
+  <div class="welcome" id="welcome">
+    <div class="welcome-logo">✦</div>
+
+    <h2>How can I help you?</h2>
+
+    <p>
+      Ask anything, learn new topics, write code,
+      solve problems or simply chat with AI.
+    </p>
+
+    <div class="suggestions">
+
+      <button class="suggestion"
+        onclick="suggest('Explain photosynthesis in simple Hindi')">
+        🌱 Explain a topic
+      </button>
+
+      <button class="suggestion"
+        onclick="suggest('Write a Python calculator program')">
+        💻 Write code
+      </button>
+
+      <button class="suggestion"
+        onclick="suggest('Make a study timetable for Class 10')">
+        📚 Study plan
+      </button>
+
+      <button class="suggestion"
+        onclick="suggest('Tell me an interesting science fact')">
+        🔬 Science
+      </button>
+
+    </div>
+  </div>
+
+</main>
+
+<div class="input-area">
+
+  <div class="input-wrap">
+
+    <textarea
+      id="input"
+      rows="1"
+      placeholder="Message Adarsh AI..."
+      onkeydown="keyHandler(event)"
+    ></textarea>
+
+    <button class="send" id="send" onclick="sendMessage()">
+      ➤
+    </button>
+
+  </div>
+
+  <div class="disclaimer">
+    AI can make mistakes. Check important information.
+  </div>
+
+</div>
+
+</div>
+
+
+<!-- SETTINGS -->
+
+<div class="modal" id="modal">
+
+  <div class="modal-box">
+
+    <h2>⚙ Groq Settings</h2>
+
+    <p>
+      Enter your Groq API key. The key is saved locally
+      in this browser and is not written into this HTML file.
+    </p>
+
+    <input
+      id="apiKey"
+      class="field"
+      type="password"
+      placeholder="gsk_..."
+      autocomplete="off"
+    >
+
+    <select id="model" class="field">
+      <option value="llama-3.3-70b-versatile">
+        Llama 3.3 70B
+      </option>
+
+      <option value="openai/gpt-oss-120b">
+        GPT OSS 120B
+      </option>
+
+      <option value="openai/gpt-oss-20b">
+        GPT OSS 20B
+      </option>
+    </select>
+
+    <div class="modal-buttons">
+      <button onclick="closeSettings()">Cancel</button>
+      <button class="save" onclick="saveSettings()">Save</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const API =
+  "https://api.groq.com/openai/v1/chat/completions";
+
+let apiKey =
+  localStorage.getItem("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") || "";
+
+let model =
+  localStorage.getItem("groq_model") ||
+  "llama-3.3-70b-versatile";
+
+let conversation = [];
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+
+
+/* SETTINGS */
+
+function openSettings(){
+
+  document.getElementById("modal")
+    .classList.add("active");
+
+  document.getElementById("apiKey").value = apiKey;
+  document.getElementById("model").value = model;
+}
+
+function closeSettings(){
+
+  document.getElementById("modal")
+    .classList.remove("active");
+}
+
+function saveSettings(){
+
+  const key =
+    document.getElementById("apiKey").value.trim();
+
+  const selected =
+    document.getElementById("model").value;
+
+  if(!key){
+
+    document.getElementById("status").textContent =
+      "Please enter your Groq API key.";
+
+    return;
+  }
+
+  apiKey = key;
+  model = selected;
+
+  localStorage.setItem("groq_api_key",apiKey);
+  localStorage.setItem("groq_model",model);
+
+  document.getElementById("status").textContent =
+    "✓ Settings saved.";
+
+  setTimeout(closeSettings,600);
+}
+
+
+/* SUGGESTIONS */
+
+function suggest(text){
+
+  input.value = text;
+  resizeInput();
+  input.focus();
+}
+
+
+/* ENTER */
+
+function keyHandler(e){
+
+  if(e.key === "Enter" && !e.shiftKey){
+
+    e.preventDefault();
+    sendMessage();
+
+  }
+}
+
+
+/* RESIZE */
+
+input.addEventListener("input",resizeInput);
+
+function resizeInput(){
+
+  input.style.height = "auto";
+
+  input.style.height =
+    Math.min(input.scrollHeight,130) + "px";
+}
+
+
+/* ADD MESSAGE */
+
+function addMessage(role,text){
+
+  const box =
+    document.createElement("div");
+
+  box.className =
+    "message " + role;
+
+  const avatar =
+    document.createElement("div");
+
+  avatar.className = "avatar";
+  avatar.textContent =
+    role === "user" ? "👤" : "✦";
+
+  const bubble =
+    document.createElement("div");
+
+  bubble.className = "bubble";
+  bubble.textContent = text;
+
+  box.appendChild(avatar);
+  box.appendChild(bubble);
+
+  chat.appendChild(box);
+
+  scrollBottom();
+}
+
+
+/* TYPING */
+
+function showTyping(){
+
+  const box =
+    document.createElement("div");
+
+  box.className = "message ai";
+  box.id = "typing";
+
+  box.innerHTML = `
+    <div class="avatar">✦</div>
+    <div class="bubble">
+      <div class="typing">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+  `;
+
+  chat.appendChild(box);
+
+  scrollBottom();
+}
+
+function hideTyping(){
+
+  const element =
+    document.getElementById("typing");
+
+  if(element) element.remove();
+}
+
+
+/* SCROLL */
+
+function scrollBottom(){
+
+  setTimeout(()=>{
+    chat.scrollTop = chat.scrollHeight;
+  },50);
+}
+
+
+/* SEND */
+
+async function sendMessage(){
+
+  const text =
+    input.value.trim();
+
+  if(!text) return;
+
+  if(!apiKey){
+
+    openSettings();
+
+    document.getElementById("status").textContent =
+      "Enter your Groq API key first.";
+
+    return;
+  }
+
+  input.value = "";
+  resizeInput();
+
+  const welcome =
+    document.getElementById("welcome");
+
+  if(welcome) welcome.remove();
+
+  addMessage("user",text);
+
+  conversation.push({
+    role:"user",
+    content:text
+  });
+
+  send.disabled = true;
+  showTyping();
+
+  try{
+
+    const response =
+      await fetch(API,{
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer " + apiKey
+        },
+
+        body:JSON.stringify({
+
+          model:model,
+
+          messages:[
+            {
+              role:"system",
+              content:
+              "You are Adarsh AI, a helpful and friendly AI assistant. Answer clearly. You can communicate in Hindi, Hinglish, or English based on the user's language."
+            },
+            ...conversation
+          ],
+
+          temperature:0.7,
+          max_tokens:2048
+
+        })
+
+      });
+
+    const data =
+      await response.json();
+
+    hideTyping();
+
+    if(!response.ok){
+
+      conversation.pop();
+
+      addMessage(
+        "ai",
+        "⚠️ Groq Error:\n" +
+        (data?.error?.message ||
+        "Request failed.")
+      );
+
+      return;
+    }
+
+    const answer =
+      data?.choices?.[0]?.message?.content ||
+      "No response received.";
+
+    conversation.push({
+      role:"assistant",
+      content:answer
+    });
+
+    addMessage("ai",answer);
+
+  }catch(error){
+
+    hideTyping();
+
+    conversation.pop();
+
+    addMessage(
+      "ai",
+      "⚠️ Connection error.\n\n" +
+      "Please check your internet connection, API key, and browser console.\n\n" +
+      error.message
+    );
+
+  }finally{
+
+    send.disabled = false;
+    input.focus();
+
+  }
+}
+
+
+/* NEW CHAT */
+
+function newChat(){
+
+  conversation = [];
+
+  chat.innerHTML = `
+
+    <div class="welcome" id="welcome">
+
+      <div class="welcome-logo">✦</div>
+
+      <h2>How can I help you?</h2>
+
+      <p>
+        Ask anything, learn new topics,
+        write code, solve problems or simply chat with AI.
+      </p>
+
+      <div class="suggestions">
+
+        <button class="suggestion"
+          onclick="suggest('Explain photosynthesis in simple Hindi')">
+          🌱 Explain a topic
+        </button>
+
+        <button class="suggestion"
+          onclick="suggest('Write a Python calculator program')">
+          💻 Write code
+        </button>
+
+        <button class="suggestion"
+          onclick="suggest('Make a study timetable for Class 10')">
+          📚 Study plan
+        </button>
+
+        <button class="suggestion"
+          onclick="suggest('Tell me an interesting science fact')">
+          🔬 Science
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+  input.focus();
+}
+
+
+/* CLOSE MODAL OUTSIDE */
+
+document.getElementById("modal")
+.addEventListener("click",function(e){
+
+  if(e.target === this){
+    closeSettings();
+  }
+
+});
+
+</script>
+
+</body>
+  </html>
